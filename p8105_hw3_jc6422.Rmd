@@ -15,6 +15,27 @@ load the data from packages
 
 ```{r}
 library(p8105.datasets)
+library(tidyverse)
+library(ggplot2)
 data("ny_noaa")
+```
+
+data cleaning
+
+```{r}
+ny_noaa_df = ny_noaa |>
+  mutate(
+    date = as.Date(date),
+    year = year(date),
+    month = month(date),
+    day = day(date),
+    tmax = as.numeric(tmax) / 10,  
+    tmin = as.numeric(tmin) / 10,  
+    prcp = as.numeric(prcp) / 10,
+    snow = snow
+  ) %>%
+  filter(!is.na(tmax) & !is.na(tmin) & !is.na(snow) & !is.na(prcp)) 
+
+ny_noaa_df
 ```
 
