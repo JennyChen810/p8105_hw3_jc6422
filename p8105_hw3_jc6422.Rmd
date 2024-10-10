@@ -1,0 +1,20 @@
+---
+title: "p8105_hw3_jc6422"
+author: "Jianing Chen"
+date: "2024-10-09"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+
+load the data from packages
+
+```{r}
+library(p8105.datasets)
+data("ny_noaa")
+```
+
