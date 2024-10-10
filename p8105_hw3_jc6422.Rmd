@@ -39,3 +39,44 @@ ny_noaa_df = ny_noaa |>
 ny_noaa_df
 ```
 
+Make a two-panel plot
+
+```{r}
+january = ny_noaa_df %>% 
+  filter(month == 1)
+
+july = ny_noaa_df %>% 
+  filter(month == 7)
+
+jan_avg_tmax = january %>% 
+  group_by(id, year) %>% 
+  summarize(avg_tmax = mean(tmax, na.rm = TRUE))%>%
+  mutate(month="January")
+
+jul_avg_tmax = july %>% 
+  group_by(id, year) %>% 
+  summarize(avg_tmax = mean(tmax, na.rm = TRUE))%>%
+  mutate(month="July")
+
+combined_data = bind_rows(jan_avg_tmax, jul_avg_tmax)
+
+ggplot(combined_data, aes(x = as.numeric(year),y=avg_tmax)) +
+  geom_point(aes( color = month)) +
+  labs(title = "Average Max Temperature in January and July", 
+       x = "Year", 
+       y = "Average Max Temperature") +
+  facet_grid(month~.) +
+  scale_color_manual(values = c("January" = "blue", "July" = "red")) +
+  theme_minimal()
+
+```
+
+Observations:
+
+The blue plot represents the distribution of average maximum temperatures in January.
+This structure suggests relatively stable temperatures with some fluctuation over time.
+
+The red plot represents the distribution of average maximum temperatures in July. This structure is also relatively stable. There is an outlier in 1988.
+
+
+
