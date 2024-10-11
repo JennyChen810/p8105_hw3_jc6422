@@ -164,5 +164,32 @@ ggplot(merged_data, aes(x = age, fill = sex)) +
 
 The histogram represents the distribution of ages for both men and women across different education categories. The "High school equivalent" group shows a broader age range, with a higher number of individuals in older age categories.The "Less than high school" group has a more dispersed age distribution with fewer individuals, but males tend to dominate in the older age categories. The "More than high school" education group is clearly the largest, with a more defined clustering of individuals in middle age, which could indicate that those with higher education tend to be younger in this dataset. Gender representation is fairly balanced across the categories, although there are slight differences in certain age brackets within each education group.
 
+Make plots to compare men to women and have separate panels for each education level.
 
+```{r}
+total_activity_data = merged_data %>%
+  mutate(total_activity = rowSums(select(., starts_with("min")), na.rm = TRUE)) %>%
+  group_by(SEQN, sex, age, education) %>%
+  summarise(total_activity = sum(total_activity, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(total_activity_data, aes(x = age, y = total_activity, color = sex)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "loess", se = FALSE) + # Using loess for a smooth trend line
+  facet_wrap(~education) +
+  labs(
+    title = "Total Activity vs Age by Education Level and Gender",
+    x = "Age",
+    y = "Total Activity",
+    color = "Gender"
+  ) +
+  theme_minimal()
+
+```
+
+All of the three plots show that total physical activity generally decreases with age for both men and women across all education levels. 
+
+Women generally exhibit higher activity levels than men in middle age (30-50), while men experience a steeper decline in activity after age 60 compared to women. 
+
+The group with more education shows more consistent activity patterns in middle age, while those with less education display a sharper drop in activity from age 40 onwards.
 
