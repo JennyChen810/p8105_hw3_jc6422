@@ -120,5 +120,29 @@ merged_data = accel %>%
 merged_data
 ```
 
+Create a table for the number of men and women in each education category:
+
+```{r}
+merged_data = merged_data %>%
+  mutate(
+    sex = case_when(
+      sex == 1 ~ "Male",
+      sex == 2 ~ "Female"
+    ),
+    education = case_when(
+      education == 1 ~ "Less than high school",
+      education == 2 ~ "High school equivalent",
+      education == 3 ~ "More than high school"
+    )
+  )
+table = merged_data %>%
+  group_by(education, sex) %>%
+  summarise(count = n()) %>%
+  pivot_wider(names_from = sex, values_from = count, values_fill = 0)
+
+table
+
+```
+
 
 
