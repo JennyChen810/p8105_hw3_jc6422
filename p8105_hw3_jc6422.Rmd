@@ -117,6 +117,7 @@ colnames(covar) = c("SEQN", "sex", "age", "BMI", "education")
 merged_data = accel %>%
   left_join(covar, by = "SEQN") %>%
   filter(age >= 21, !is.na(education), !is.na(sex), !is.na(age))
+
 merged_data
 ```
 
@@ -192,4 +193,40 @@ All of the three plots show that total physical activity generally decreases wit
 Women generally exhibit higher activity levels than men in middle age (30-50), while men experience a steeper decline in activity after age 60 compared to women. 
 
 The group with more education shows more consistent activity patterns in middle age, while those with less education display a sharper drop in activity from age 40 onwards.
+
+Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex.
+
+```{r}
+long_data = merged_data %>%
+  pivot_longer(cols = starts_with("min"), 
+               names_to = "minute", 
+               values_to = "activity") %>%
+  mutate(minute = as.numeric(str_remove(minute, "min")),
+          sex = factor(sex, levels = c(1, 2), labels = c("Male", "Female")),
+    education = factor(education, levels = c(1, 2, 3), 
+                       labels = c("Less than high school", "High school equivalent", "More than high school"))
+  )
+
+ggplot(long_data, aes(x = minute, y = activity, color = sex)) +
+  geom_line(alpha = 0.5) +  # Light lines to show individual participants' activity
+  geom_smooth(se = FALSE, method = "loess") +  # Smooth trend to highlight overall activity patterns
+  facet_wrap(~education) +  # Separate panels for each education level
+  labs(
+    title = "24-Hour Activity Time Course by Education Level and Gender",
+    x = "Time (minutes from midnight)",
+    y = "Activity",
+    color = "Gender"
+  ) +
+  theme_minimal()
+
+```
+
+Higher education levels correlate with more sustained physical activity throughout the day, especially in the evening.
+
+The graph shows clear daily cycles of physical activity, with higher levels in the morning and evening and a dip in the early afternoon.
+
+The trend line suggests potential gender differences in physical activity patterns.
+
+
+
 
