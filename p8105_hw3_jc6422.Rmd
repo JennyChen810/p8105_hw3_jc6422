@@ -17,6 +17,7 @@ load the data from packages
 library(p8105.datasets)
 library(tidyverse)
 library(ggplot2)
+library(patchwork)
 data("ny_noaa")
 ```
 
@@ -39,7 +40,9 @@ ny_noaa_df = ny_noaa |>
 ny_noaa_df
 ```
 
-Make a two-panel plot
+This data has `r nrow(ny_noaa_df)` rows and `r ncol(ny_noaa_df)` columns. The variables are `r names(ny_noaa_df)`.
+
+Make a two-panel plot showing the average max temperature in January and in July in each station across years.
 
 ```{r}
 january = ny_noaa_df %>% 
@@ -77,6 +80,31 @@ The blue plot represents the distribution of average maximum temperatures in Jan
 This structure suggests relatively stable temperatures with some fluctuation over time.
 
 The red plot represents the distribution of average maximum temperatures in July. This structure is also relatively stable. There is an outlier in 1988.
+
+Make a two-panel plot showing :
+
+(i) tmax vs tmin for the full dataset 
+(ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+```{r}
+p1 = ggplot(ny_noaa_df, aes(x = tmin, y = tmax)) +
+  geom_bin2d(bins = 30) +
+  scale_fill_viridis_c() +
+  labs(title = "Tmax vs Tmin", x = "Minimum Temperature (Tmin)", y = "Maximum Temperature (Tmax)") +
+  theme_minimal()
+
+snow_filtered = ny_noaa_df %>%
+  filter(snow > 0 & snow < 100)
+
+p2 = ggplot(snow_filtered, aes(x = snow, fill = factor(year))) +
+  geom_density(alpha = 0.5) +  
+  labs(title = "Density of Snowfall (0 < Snow < 100) by Year", x = "Snowfall (cm)", y = "Density") +
+  theme_minimal()
+
+combined_plot = p1 / p2
+
+combined_plot
+```
 
 
 
