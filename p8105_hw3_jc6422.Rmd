@@ -106,5 +106,19 @@ combined_plot = p1 / p2
 combined_plot
 ```
 
+## Problem 2
+
+Load and clean the datasets.
+
+```{r}
+accel = read_csv("data/nhanes_accel.csv")
+covar = read_csv("data/nhanes_covar.csv",skip = 4) 
+colnames(covar) = c("SEQN", "sex", "age", "BMI", "education")
+merged_data = accel %>%
+  left_join(covar, by = "SEQN") %>%
+  filter(age >= 21, !is.na(education), !is.na(sex), !is.na(age))
+merged_data
+```
+
 
 
