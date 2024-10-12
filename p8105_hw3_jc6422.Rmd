@@ -271,8 +271,52 @@ pop_stations
 Make a plot to investigate the effects of day of the week, month, and year on median ride duration.
 
 ```{r}
+citi_bike_data$weekdays = factor(citi_bike_data$weekdays, 
+                                  levels = c("Monday", "Tuesday", "Wednesday", 
+                                             "Thursday", "Friday", "Saturday", "Sunday"))
 
+median_duration = citi_bike_data %>%
+  group_by(weekdays, year, month, member_casual) %>%
+  summarise(median_duration = median(duration,na.rm = TRUE))
+
+ggplot(median_duration, aes(x = weekdays, y = median_duration, fill = member_casual)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(year ~ month) +
+  theme_minimal() +
+  labs(title = "Median Ride Duration by Day of the Week, Year, and Month",
+       x = "Day of the Week", y = "Median Duration (minutes)") +
+  scale_fill_manual(values = c("casual" = "coral", "member" = "skyblue")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  scale_x_discrete(expand = expansion(add = 0.5))
 ```
 
+This plot shows the different usage patterns between casual and member riders, with casual riders generally taking longer, more leisure-oriented rides.
 
+There is a noticeable reduction in ride durations for both rider types from 2020 to 2024, possibly due to changes in infrastructure, pricing, or user behavior.
+
+The seasonality effect is apparent, with July (summer) seeing longer ride durations than January (winter), particularly for casual riders.
+
+For data in 2024, make a figure that shows the impact of month, membership status, and bike type on the distribution of ride duration.
+
+```{r}
+citi_bike_2024 = citi_bike_data %>%
+  filter(year == 2024) %>%
+  group_by(month, member_casual, rideable_type) %>%
+  summarise(median_duration = median(duration))
+
+ggplot(citi_bike_2024, aes(x = month, y = median_duration, fill = rideable_type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ member_casual) +
+  theme_minimal() +
+  labs(title = "Distribution of Ride Duration by Membership, Bike Type, and Month (2024)",
+       x = "Membership Status", y = "Ride Duration (minutes)") +
+  scale_fill_manual(values = c("classic_bike" = "skyblue", "electric_bike" = "coral")) +
+  theme_minimal()
+```
+
+Casual riders take longer rides, particularly on classic bikes in July, likely for leisure.
+
+Members have more uniform ride durations, with little variation between bike types and months. They are likely for frequent, shorter trips.
+
+Electric bikes are used for shorter trips by casual riders, especially in the July, likely because of their efficiency and speed. 
 
