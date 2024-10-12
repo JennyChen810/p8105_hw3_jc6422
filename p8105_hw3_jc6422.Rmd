@@ -245,4 +245,34 @@ citi_bike_data = bind_rows(jan_2020, jan_2024, july_2020, july_2024)
 
 This data has `r nrow(citi_bike_data)` rows and `r ncol(citi_bike_data)` columns. The variables are `r names(citi_bike_data)`.
 
+Produce a reader-friendly table showing the total number of rides in each combination of year and month separating casual riders and Citi Bike members. 
+
+```{r}
+total_rides = citi_bike_data %>%
+  group_by(year, month, member_casual) %>%
+  summarise(total_rides = n()) %>%
+  arrange(year, month)
+
+total_rides
+```
+
+As the results shows that there is an increasing trend of usage of citi bike from 2020 to 2024, especially among members. This could suggest that as the Citi Bike system expands and improves, more people are opting for memberships to take advantage of lower rates and more frequent rides. Casual riders, while increasing in number, still form a smaller proportion of overall usage, primarily using the system in peak months like July.
+
+Make a table showing the 5 most popular starting stations for July 2024; include the number of rides originating from these stations.
+
+```{r}
+pop_stations = july_2024 %>%
+  count(start_station_name) %>%
+  top_n(5, wt = n)
+
+pop_stations
+```
+
+Make a plot to investigate the effects of day of the week, month, and year on median ride duration.
+
+```{r}
+
+```
+
+
 
