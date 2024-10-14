@@ -114,6 +114,7 @@ accel = read_csv("data/nhanes_accel.csv",na = c(".", "NA", ""))%>%
 covar = read_csv("data/nhanes_covar.csv",na = c(".", "NA", ""),skip = 4) %>%
   janitor::clean_names() %>%
   drop_na()
+
 merged_data = left_join(covar,accel, by = "seqn") %>%
   filter(age >= 21) %>%
     mutate(
@@ -124,7 +125,7 @@ merged_data = left_join(covar,accel, by = "seqn") %>%
     )
   
 ```
-The cleaned merge data has `r nrow(merged_data)` rows and `r ncol(merged_data)` columns. The variables are `r names(merged_data)`.
+The cleaned merge data has `r nrow(merged_data)` rows and `r ncol(merged_data)` columns. The variables are seqn, sex, age, bmi, education, MIMS values for each minutes of a 24-hour day.
 
 Create a table for the number of men and women in each education category:
 
@@ -195,13 +196,12 @@ long_data = merged_data %>%
   pivot_longer(cols = starts_with("min"), 
                names_to = "minute", 
                values_to = "activity") %>%
-  mutate(minute = as.numeric(str_remove(minute, "min")),
-         hour = minute %/% 60 + 1)
+  mutate(minute = as.numeric(str_remove(minute, "min")))
 
 activity_plot = ggplot(long_data, aes(x = minute, y = activity, color = sex)) +
   geom_line(alpha = 0.5) +  
-  geom_smooth(se = FALSE, method = "loess") + 
-  facet_wrap(~education) +  
+  geom_smooth(se = FALSE) + 
+  facet_wrap(.~education) +  
   labs(
     title = "24-Hour Activity Time Course by Education Level and Gender",
     x = "Time (minutes from midnight)",
@@ -210,15 +210,15 @@ activity_plot = ggplot(long_data, aes(x = minute, y = activity, color = sex)) +
   ) +
   theme_minimal()
 
-ggsave("activity_time_plot.png", plot = activity_plot, width = 8, height = 6)
-knitr::include_graphics("activity_time_plot.png")
+activity_plot
+
 ```
 
-Higher education levels correlate with more sustained physical activity throughout the day, especially in the evening.
+Higher education levels correlate with more sustained physical activity throughout the day. In contrast, those with less than a high school education exhibit lower overall activity levels.
 
-The graph shows clear daily cycles of physical activity, with higher levels in the morning and evening and a dip in the early afternoon.
+Females generally display more consistent and evenly distributed activity patterns throughout the day across all education levels. Their activity shows fewer extreme peaks and dips compared to males. However, Males, particularly those with more education, show larger spikes in activity, particularly in the morning and late afternoon, indicating potential differences in work schedules or exercise habits.
 
-The trend line shows potential gender differences in physical activity patterns, which suggests male and female have similar activity for all three education levels.
+The graph shows a typical daily activity cycle for all groups, with noticeable peaks in the morning and evening, and a lull during midday. This pattern likely corresponds to work-related activities, commuting, or exercise routines.
 
 ## Problem 3
 
@@ -282,55 +282,53 @@ knitr::kable(pop_stations,
     align = 'c') 
 ```
 
+The 5 most popular stating stations in July 2024 are Pier 61 at Chelsea Piers, University Pl & E 14 St, W 21 St & 6 Ave, W 31 St & 7 Ave and West St & Chambers St.
+
 Make a plot to investigate the effects of day of the week, month, and year on median ride duration.
 
 ```{r}
-citi_bike_data$weekdays = factor(citi_bike_data$weekdays, 
-                                  levels = c("Monday", "Tuesday", "Wednesday", 
-                                             "Thursday", "Friday", "Saturday", "Sunday"))
-
 median_duration = citi_bike_data %>%
-  group_by(weekdays, year, month, member_casual) %>%
+  group_by(weekdays, year, month) %>%
   summarise(median_duration = median(duration,na.rm = TRUE))
 
-ggplot(median_duration, aes(x = weekdays, y = median_duration, fill = member_casual)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_grid(year ~ month) +
-  theme_minimal() +
-  labs(title = "Median Ride Duration by Day of the Week, Year, and Month",
-       x = "Day of the Week", y = "Median Duration (minutes)") +
-  scale_fill_manual(values = c("casual" = "coral", "member" = "skyblue")) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
-  scale_x_discrete(expand = expansion(add = 0.5))
+median_duration_plot = median_duration |>
+  ggplot(aes(x = weekdays, y = median_duration, color = month)) +
+  geom_line(aes(group = interaction(year, month))) +
+  facet_wrap(. ~ year) + 
+  labs(title = "Median Ride Duration by Day of the Week, Month, and Year",
+       x = "Day of the Week",
+       y = "Median Ride Duration (minutes)",
+       color = "Month")
+
+median_duration_plot
 ```
 
-This plot shows the different usage patterns between casual and member riders, with casual riders generally taking longer, more leisure-oriented rides.
-
-There is a noticeable reduction in ride durations for both rider types from 2020 to 2024, possibly due to changes in infrastructure, pricing, or user behavior.
-
-The seasonality effect is apparent, with July (summer) seeing longer ride durations than January (winter), particularly for casual riders.
+This plot shows that median ride duration in July are generally longer than in January. These four lines have an increasing trend from Monday to Saturday and decreasing from Saturday to Sunday.
+In both 2020 and 2024, we see that the weekend days (Saturday and Sunday) have higher median ride duration in July compared to the weekdays. This further supports the idea that weekend rides in summer are likely more recreational, with users taking longer trips for leisure purposes.
+Comparing the two years, we observe that 2024 shows a more consistent, indicating an evolving user base that may be utilizing Citi Bike more frequently for various purposes.
 
 For data in 2024, make a figure that shows the impact of month, membership status, and bike type on the distribution of ride duration.
 
 ```{r}
 citi_bike_2024 = citi_bike_data %>%
-  filter(year == 2024) %>%
-  group_by(month, member_casual, rideable_type) %>%
-  summarise(median_duration = median(duration))
+  filter(year == 2024)
 
-ggplot(citi_bike_2024, aes(x = month, y = median_duration, fill = rideable_type)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_wrap(~ member_casual) +
-  theme_minimal() +
-  labs(title = "Distribution of Ride Duration by Membership, Bike Type, and Month (2024)",
-       x = "Membership Status", y = "Ride Duration (minutes)") +
-  scale_fill_manual(values = c("classic_bike" = "skyblue", "electric_bike" = "coral")) +
+figure = ggplot(citi_bike_2024, aes(x = duration, fill = member_casual)) +
+  geom_density(alpha = 0.5) +
+  facet_grid(rideable_type ~ month) +
+  labs(
+    title = "Density of Ride Duration by Month, Membership, and Bike Type",
+    x = "Ride Duration (minutes)",
+    fill = "Membership"
+  ) +
   theme_minimal()
+
+figure
+
 ```
 
-Casual riders take longer rides, particularly on classic bikes in July, likely for leisure.
+By this density plot, we can observe that the majority of rides are clustered within 0-50 minutes range, which indicates that most rides, whether by casual or member users, are short, with casual riders tending to take slightly longer rides.  
 
-Members have more uniform ride durations, with little variation between bike types and months. They are likely for frequent, shorter trips.
+The member riders have a higher peak than casual riders, which suggests that members tend to take a short rides more frequently.
 
-Electric bikes are used for shorter trips by casual riders, especially in the July, likely because of their efficiency and speed. 
-
+There are no major seasonal differences in ride duration distribution, but electric bike rides tend to be slightly shorter and more uniform.
